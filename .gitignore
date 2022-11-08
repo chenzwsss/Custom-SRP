@@ -1,0 +1,14 @@
+*.csproj
+.vscode/
+Library/
+Logs/
+Packages/
+Temp/
+*.sln
+UserSettings/
+Builds/
+webgl_sharing
+connectwebgl.zip
+*.DS_Store
+.idea/
+obj/
