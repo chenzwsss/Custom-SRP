@@ -1,5 +1,5 @@
-﻿#ifndef CUSTOM_UNITY_INPUT_INCLUDE
-#define CUSTOM_UNITY_INPUT_INCLUDE
+﻿#ifndef CUSTOM_UNITY_INPUT_INCLUDED
+#define CUSTOM_UNITY_INPUT_INCLUDED
 
 CBUFFER_START(UnityPerDraw)
     float4x4 unity_ObjectToWorld;
@@ -14,5 +14,7 @@ float4x4 glstate_matrix_projection;
 
 float4x4 unity_MatrixPreviousM;
 float4x4 unity_MatrixPreviousMI;
+
+float3 _WorldSpaceCameraPos;
 
 #endif
