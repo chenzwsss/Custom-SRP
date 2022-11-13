@@ -119,8 +119,7 @@ public class CustomShaderGUI : ShaderGUI
     bool SetProperty(string name, float value)
     {
         MaterialProperty property = FindProperty(name, properties, false);
-        if (property != null)
-        {
+        if (property != null) {
             property.floatValue = value;
             return true;
         }
