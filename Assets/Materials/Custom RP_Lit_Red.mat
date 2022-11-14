@@ -7,14 +7,17 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom RP_Unlit_Yellow
+  m_Name: Custom RP_Lit_Red
   m_Shader: {fileID: 4800000, guid: ccc5ac74471467148874a0bcf31e826e, type: 3}
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _PREMULTIPLY_ALPHA
+  - _RECEIVE_SHADOWS
+  - _SHADOWS_DITHER
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -27,13 +30,15 @@ Material:
     m_Ints: []
     m_Floats:
     - _Clipping: 0
-    - _Cutoff: 0.503
-    - _DstBlend: 0
-    - _Metallic: 1
-    - _PremulAlpha: 0
+    - _Cutoff: 0.315
+    - _DstBlend: 10
+    - _Metallic: 0
+    - _PremulAlpha: 1
+    - _ReceiveShadows: 1
+    - _Shadows: 2
     - _Smoothness: 0.5
     - _SrcBlend: 1
-    - _ZWrite: 1
+    - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 1, g: 0.98446316, b: 0.43867916, a: 1}
+    - _BaseColor: {r: 0.5849056, g: 0, b: 0, a: 0.7529412}
   m_BuildTextureStacks: []

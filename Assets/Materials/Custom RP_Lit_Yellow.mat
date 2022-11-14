@@ -7,10 +7,12 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom RP_Unlit_Green
+  m_Name: Custom RP_Lit_Yellow
   m_Shader: {fileID: 4800000, guid: ccc5ac74471467148874a0bcf31e826e, type: 3}
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_ValidKeywords:
+  - _RECEIVE_SHADOWS
+  m_InvalidKeywords:
+  - _SHADOWS_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -27,13 +29,15 @@ Material:
     m_Ints: []
     m_Floats:
     - _Clipping: 0
-    - _Cutoff: 0.5
+    - _Cutoff: 0.503
     - _DstBlend: 0
-    - _Metallic: 0
+    - _Metallic: 1
     - _PremulAlpha: 0
+    - _ReceiveShadows: 1
+    - _Shadows: 0
     - _Smoothness: 0.5
     - _SrcBlend: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0, g: 0.4716981, b: 0.034823395, a: 1}
+    - _BaseColor: {r: 1, g: 0.98446316, b: 0.43867916, a: 1}
   m_BuildTextureStacks: []
