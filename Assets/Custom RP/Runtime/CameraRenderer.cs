@@ -36,15 +36,15 @@ public partial class CameraRenderer
         {
             return;
         }
-        
+
         buffer.BeginSample(SampleName);
         ExecuteBuffer();
 
         // setup lighting data
         lighting.Setup(context, cullingResults, shadowSettings);
-        
+
         buffer.EndSample(SampleName);
-        
+
         Setup();
 
         DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
@@ -53,7 +53,7 @@ public partial class CameraRenderer
 
         // draw gizmos in scene window
         DrawGizmos();
-        
+
         lighting.Cleanup();
 
         // submit the queued work for execution
@@ -87,7 +87,9 @@ public partial class CameraRenderer
         var drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)
         {
             enableDynamicBatching = useDynamicBatching,
-            enableInstancing = useGPUInstancing
+            enableInstancing = useGPUInstancing,
+            // perObjectData: Set what kind of per-object data to setup during rendering.
+            perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume
         };
         drawingSettings.SetShaderPassName(1, litShaderTagId);
 

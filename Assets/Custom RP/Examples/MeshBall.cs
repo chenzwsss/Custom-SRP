@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using UnityEngine.Rendering;
 
 public class MeshBall : MonoBehaviour
 {
@@ -8,13 +9,16 @@ public class MeshBall : MonoBehaviour
         metallicId = Shader.PropertyToID("_Metallic"),
         smoothnessId = Shader.PropertyToID("_Smoothness");
 
-    const int meshBallNum = 256;
+    const int meshBallNum = 1023;
 
     [SerializeField]
     Mesh mesh = default;
 
     [SerializeField]
     Material material = default;
+
+    [SerializeField]
+    LightProbeProxyVolume lightProbeVolume = null;
 
     Matrix4x4[] matrices = new Matrix4x4[meshBallNum];
     Vector4[] baseColors = new Vector4[meshBallNum];
@@ -28,7 +32,7 @@ public class MeshBall : MonoBehaviour
     {
         for (int i = 0; i < matrices.Length; i++)
         {
-            matrices[i] = Matrix4x4.TRS(Random.insideUnitSphere * 5f,
+            matrices[i] = Matrix4x4.TRS(Random.insideUnitSphere * 16f,
                 Quaternion.Euler(Random.value * 360f, Random.value * 360f, Random.value * 360f),
                     Vector3.one * Random.Range(0.5f, 1.5f));
             baseColors[i] = new Vector4(Random.value, Random.value, Random.value, Random.Range(0.5f, 1f));
@@ -45,7 +49,24 @@ public class MeshBall : MonoBehaviour
             block.SetVectorArray(baseColorId, baseColors);
             block.SetFloatArray(metallicId, metallic);
             block.SetFloatArray(smoothnessId, smoothness);
+
+            if (!lightProbeVolume)
+            {
+                var positions = new Vector3[meshBallNum];
+                for (int i = 0; i < matrices.Length; i++)
+                {
+                    positions[i] = matrices[i].GetColumn(3);
+                }
+
+                var lightProbes = new SphericalHarmonicsL2[meshBallNum];
+                LightProbes.CalculateInterpolatedLightAndOcclusionProbes(positions, lightProbes, null);
+
+                block.CopySHCoefficientArraysFrom(lightProbes);
+            }
         }
-        Graphics.DrawMeshInstanced(mesh, 0, material, matrices, meshBallNum, block);
+        Graphics.DrawMeshInstanced(mesh, 0, material, matrices, meshBallNum, block,
+            ShadowCastingMode.On, true, 0, null,
+            lightProbeVolume ? LightProbeUsage.UseProxyVolume : LightProbeUsage.CustomProvided,
+            lightProbeVolume);
     }
 }
