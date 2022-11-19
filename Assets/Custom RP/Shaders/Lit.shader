@@ -54,6 +54,9 @@ Shader "Custom RP/Lit"
 
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
+            // #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING
+            #pragma multi_compile_fragment _ _REFLECTION_PROBE_BOX_PROJECTION
+
             #pragma multi_compile_instancing
 
             #pragma vertex LitPassVertex

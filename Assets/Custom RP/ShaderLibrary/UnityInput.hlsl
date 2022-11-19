@@ -31,6 +31,10 @@ CBUFFER_START(UnityPerDraw)
     // Reflection Probe 0 block feature
     // HDR environment map decode instructions
     float4 unity_SpecCube0_HDR;
+
+    float4 unity_SpecCube0_BoxMin;
+    float4 unity_SpecCube0_BoxMax;
+    float4 unity_SpecCube0_ProbePosition;
 CBUFFER_END
 
 float4x4 unity_MatrixVP;

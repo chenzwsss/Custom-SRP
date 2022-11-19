@@ -106,11 +106,37 @@ float4 SampleBakedShadows(float2 lightMapUV, Surface surfaceWS)
     #endif
 }
 
+float3 BoxProjectedCubemapDirection(float3 reflectionWS, float3 positionWS, float4 cubemapPositionWS, float4 boxMin, float4 boxMax)
+{
+    // Is this probe using box projection?
+    if (cubemapPositionWS.w > 0.0f)
+    {
+        float3 boxMinMax = (reflectionWS > 0.0f) ? boxMax.xyz : boxMin.xyz;
+        float3 rbMinMax = float3(boxMinMax - positionWS) / reflectionWS;
+
+        float fa = float(min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z));
+
+        float3 worldPos = float3(positionWS - cubemapPositionWS.xyz);
+
+        float3 result = worldPos + reflectionWS * fa;
+        return result;
+    }
+    else
+    {
+        return reflectionWS;
+    }
+}
+
 float3 SampleEnvironment(Surface surfaceWS, BRDF brdf)
 {
-    float3 uvw = reflect(-surfaceWS.viewDirection, surfaceWS.normal);
+    float3 reflectVector = reflect(-surfaceWS.viewDirection, surfaceWS.normal);
+    // #if defined(_REFLECTION_PROBE_BOX_PROJECTION)
+        reflectVector = BoxProjectedCubemapDirection(reflectVector, surfaceWS.position, unity_SpecCube0_ProbePosition,
+            unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+    // #endif
+
     float mip = PerceptualRoughnessToMipmapLevel(brdf.perceptualRoughness);
-    float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
+    float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
     return DecodeHDREnvironment(environment, unity_SpecCube0_HDR);
 }
 
