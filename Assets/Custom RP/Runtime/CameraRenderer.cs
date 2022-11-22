@@ -23,7 +23,7 @@ public partial class CameraRenderer
 
     Lighting lighting = new Lighting();
 
-    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, ShadowSettings shadowSettings)
+    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings)
     {
         this.context = context;
         this.camera = camera;
@@ -41,13 +41,13 @@ public partial class CameraRenderer
         ExecuteBuffer();
 
         // setup lighting data
-        lighting.Setup(context, cullingResults, shadowSettings);
+        lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject);
 
         buffer.EndSample(SampleName);
 
         Setup();
 
-        DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
+        DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
 
         DrawUnsupportedShaders();
 
@@ -77,8 +77,10 @@ public partial class CameraRenderer
         ExecuteBuffer();
     }
 
-    void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing)
+    void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject)
     {
+        PerObjectData lightsPerObjectData = useLightsPerObject ? PerObjectData.LightData | PerObjectData.LightIndices : PerObjectData.None;
+
         // draw opaque
         var sortingSettings = new SortingSettings(camera)
         {
@@ -92,7 +94,7 @@ public partial class CameraRenderer
             perObjectData = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.ShadowMask |
                             PerObjectData.LightProbe | PerObjectData.OcclusionProbe |
                             PerObjectData.LightProbeProxyVolume |
-                            PerObjectData.OcclusionProbeProxyVolume
+                            PerObjectData.OcclusionProbeProxyVolume | lightsPerObjectData
         };
         drawingSettings.SetShaderPassName(1, litShaderTagId);
 
