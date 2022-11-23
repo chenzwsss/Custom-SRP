@@ -115,7 +115,7 @@ public class Shadows
                 return new Vector4(light.shadowStrength, 0f, 0f, lightBaking.occlusionMaskChannel);
             }
         }
-        return new Vector4(0f, 0f, 0f, 1f);
+        return new Vector4(0f, 0f, 0f, -1f);
     }
 
     public void Render()
