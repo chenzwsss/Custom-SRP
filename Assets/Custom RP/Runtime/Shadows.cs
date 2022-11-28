@@ -296,7 +296,7 @@ public class Shadows
         {
             if (shadowedOtherLights[i].isPoint)
             {
-                RenderPointShadows(i, split, tiles);
+                RenderPointShadows(i, split, tileSize);
                 i += 6;
             }
             else
@@ -341,9 +341,40 @@ public class Shadows
         buffer.SetGlobalDepthBias(0f, 0f);
     }
 
-    void RenderPointShadows(int index, int spit, int tileSize)
+    void RenderPointShadows(int index, int split, int tileSize)
     {
+        ShadowedOtherLight light = shadowedOtherLights[index];
+        var shadowSettings = new ShadowDrawingSettings(cullingResults, light.visibleLightIndex);
 
+        float texelSize = 2f / tileSize;
+        float filterSize = texelSize * ((float)settings.other.filter + 1f);
+        float bias = light.normalBias * filterSize * 1.4142136f;
+        float tileScale = 1f / split;
+
+        float fovBias = Mathf.Atan(1f + bias + filterSize) * Mathf.Rad2Deg * 2f - 90f;
+        for (int i = 0; i < 6; i++)
+        {
+            cullingResults.ComputePointShadowMatricesAndCullingPrimitives(
+                light.visibleLightIndex, (CubemapFace)i, fovBias,
+                out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
+                out ShadowSplitData splitData);
+            viewMatrix.m11 = -viewMatrix.m11;
+            viewMatrix.m12 = -viewMatrix.m12;
+            viewMatrix.m13 = -viewMatrix.m13;
+            shadowSettings.splitData = splitData;
+
+            int tileIndex = index + i;
+            Vector2 offset = SetTileViewport(tileIndex, split, tileSize);
+
+            SetOtherTileData(tileIndex, offset, tileScale, bias);
+            otherShadowMatrices[tileIndex] = ConvertToAtlasMatrix(projectionMatrix * viewMatrix, offset, tileScale);
+
+            buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+            buffer.SetGlobalDepthBias(0f, light.slopeScaleBias);
+            ExecuteBuffer();
+            context.DrawShadows(ref shadowSettings);
+            buffer.SetGlobalDepthBias(0f, 0f);
+        }
     }
 
     void SetKeywords(string[] keywords, int enableIndex)

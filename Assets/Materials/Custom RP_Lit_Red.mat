@@ -54,7 +54,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _Clipping: 1
-    - _Cutoff: 0.381
+    - _Cutoff: 0.117
     - _DetailAlbedo: 1
     - _DetailMapToggle: 0
     - _DetailNormalScale: 1
