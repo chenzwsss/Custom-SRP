@@ -23,7 +23,36 @@ public partial class CameraRenderer
 
     Lighting lighting = new Lighting();
 
-    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings)
+    PostFXStack postFXStack = new PostFXStack();
+
+    static int frameBufferId = Shader.PropertyToID("_CameraFrameBuffer");
+
+    void Setup()
+    {
+        // apply camera's properties to the context
+        context.SetupCameraProperties(camera);
+
+        CameraClearFlags flags = camera.clearFlags;
+        if (postFXStack.IsActive)
+        {
+            if (flags > CameraClearFlags.Color)
+                flags = CameraClearFlags.Color;
+            buffer.GetTemporaryRT(frameBufferId, camera.pixelWidth, camera.pixelHeight, 32, FilterMode.Bilinear, RenderTextureFormat.Default);
+            buffer.SetRenderTarget(frameBufferId, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+        }
+
+        // clear camera's render target
+        buffer.ClearRenderTarget(flags <= CameraClearFlags.Depth, flags == CameraClearFlags.Color,
+            flags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.clear);
+
+        // begin inject profiler event (show up in profiler & frame debugger)
+        buffer.BeginSample(SampleName);
+
+        ExecuteBuffer();
+    }
+
+    public void Render(ScriptableRenderContext context, Camera camera, bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, ShadowSettings shadowSettings,
+        PostFXSettings postFXSettings)
     {
         this.context = context;
         this.camera = camera;
@@ -43,6 +72,9 @@ public partial class CameraRenderer
         // setup lighting data
         lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject);
 
+        // setup post process
+        postFXStack.Setup(context, camera, postFXSettings);
+
         buffer.EndSample(SampleName);
 
         Setup();
@@ -52,29 +84,21 @@ public partial class CameraRenderer
         DrawUnsupportedShaders();
 
         // draw gizmos in scene window
-        DrawGizmos();
+        DrawGizmosBeforeFX();
 
-        lighting.Cleanup();
+        // post process
+        if (postFXStack.IsActive)
+        {
+            postFXStack.Render(frameBufferId);
+        }
+
+        // draw gizmos in scene window
+        DrawGizmosAfterFX();
+
+        Cleanup();
 
         // submit the queued work for execution
         Submit();
-    }
-
-    void Setup()
-    {
-        // apply camera's properties to the context
-        context.SetupCameraProperties(camera);
-
-        CameraClearFlags flags = camera.clearFlags;
-
-        // clear camera's render target
-        buffer.ClearRenderTarget(flags <= CameraClearFlags.Depth, flags == CameraClearFlags.Color,
-            flags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.clear);
-
-        // begin inject profiler event (show up in profiler & frame debugger)
-        buffer.BeginSample(SampleName);
-
-        ExecuteBuffer();
     }
 
     void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject)
@@ -138,5 +162,13 @@ public partial class CameraRenderer
         }
 
         return false;
+    }
+
+    void Cleanup()
+    {
+        lighting.Cleanup();
+
+        if (postFXStack.IsActive)
+            buffer.ReleaseTemporaryRT(frameBufferId);
     }
 }
