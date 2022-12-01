@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a29c23aca50daaa4198d6a64ff62b9d5, type: 3}
   m_Name: New Custom Render Pipeline Asset
   m_EditorClassIdentifier: 
+  allowHDR: 1
   useDynamicBatching: 0
   useGPUInstancing: 1
   useSRPBatcher: 1

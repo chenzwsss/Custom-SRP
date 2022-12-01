@@ -26,16 +26,45 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _DetailMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 10300, guid: 0000000000000000f000000000000000, type: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _Clipping: 0
     - _Cutoff: 0.5
+    - _DetailAlbedo: 1
+    - _DetailMapToggle: 0
+    - _DetailNormalScale: 1
+    - _DetailSmoothness: 1
     - _DstBlend: 0
+    - _Fresnel: 1
+    - _MaskMapToggle: 0
     - _Metallic: 0
+    - _NormalMapToggle: 0
+    - _NormalScale: 1
+    - _Occlusion: 1
     - _PremulAlpha: 0
     - _ReceiveShadows: 1
     - _Shadows: 0
@@ -44,5 +73,6 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.9056604, g: 0.41116837, b: 0.021359911, a: 1}
-    - _EmissionColor: {r: 16.927786, g: 15.659414, b: 13.6540165, a: 0}
+    - _Color: {r: 0.9056604, g: 0.41116834, b: 0.021359911, a: 1}
+    - _EmissionColor: {r: 5.992157, g: 5.5529413, b: 4.8627453, a: 0}
   m_BuildTextureStacks: []
