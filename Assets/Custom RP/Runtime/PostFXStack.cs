@@ -113,6 +113,20 @@ public partial class PostFXStack
         buffer.DrawProcedural(Matrix4x4.identity, settings.Material, (int)pass, MeshTopology.Triangles, 3);
     }
 
+    void DrawFinal(RenderTargetIdentifier from)
+    {
+        buffer.SetGlobalTexture(fxSourceId, from);
+        buffer.SetRenderTarget(
+            BuiltinRenderTextureType.CameraTarget,
+            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+        );
+        buffer.SetViewport(camera.pixelRect);
+        buffer.DrawProcedural(
+            Matrix4x4.identity, settings.Material,
+            (int)Pass.Final, MeshTopology.Triangles, 3
+        );
+    }
+
     #region Bloom
 
     bool DoBloom(int sourceId)
@@ -284,7 +298,7 @@ public partial class PostFXStack
         Draw(sourceId, colorGradingLUTId, pass);
 
         buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f));
-        Draw(sourceId, BuiltinRenderTextureType.CameraTarget, Pass.Final);
+        DrawFinal(sourceId);
         buffer.ReleaseTemporaryRT(colorGradingLUTId);
     }
 
