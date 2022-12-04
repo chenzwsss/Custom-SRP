@@ -7,6 +7,10 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_LODFade;
     real4 unity_WorldTransformParams;
 
+    // Render Layer block feature
+    // Only the first channel (x) contains valid data and the float must be reinterpreted using asuint() to extract the original 32 bits values.
+    float4 unity_RenderingLayer;
+
     // Light Indices block feature
     // These are set internally by the engine upon request by RendererConfiguration.
     real4 unity_LightData;  // unity_LightData.y 记录了影响当前材质的光源数量

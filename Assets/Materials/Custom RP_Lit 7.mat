@@ -10,20 +10,21 @@ Material:
   m_Name: Custom RP_Lit 7
   m_Shader: {fileID: 4800000, guid: ccc5ac74471467148874a0bcf31e826e, type: 3}
   m_ValidKeywords:
+  - _PREMULTIPLY_ALPHA
   - _RECEIVE_SHADOWS
-  m_InvalidKeywords:
-  - _SHADOWS_ON
+  - _SHADOWS_CLIP
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: cf344093c13b9b748b1e77d75c23bd33, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailMap:
@@ -39,7 +40,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: cf344093c13b9b748b1e77d75c23bd33, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
@@ -58,19 +59,19 @@ Material:
     - _DetailMapToggle: 0
     - _DetailNormalScale: 1
     - _DetailSmoothness: 1
-    - _DstBlend: 0
+    - _DstBlend: 10
     - _Fresnel: 1
     - _MaskMapToggle: 0
     - _Metallic: 0
     - _NormalMapToggle: 0
     - _NormalScale: 1
     - _Occlusion: 1
-    - _PremulAlpha: 0
+    - _PremulAlpha: 1
     - _ReceiveShadows: 1
-    - _Shadows: 0
+    - _Shadows: 1
     - _Smoothness: 0.9
     - _SrcBlend: 1
-    - _ZWrite: 1
+    - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 0.019607833, g: 0.63474596, b: 0.90588236, a: 1}
     - _Color: {r: 0.019607833, g: 0.6347459, b: 0.90588236, a: 1}

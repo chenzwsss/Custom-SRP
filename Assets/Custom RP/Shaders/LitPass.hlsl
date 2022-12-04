@@ -45,7 +45,7 @@ Varyings LitPassVertex(Attributes input)
 
     output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
     output.positionCS = TransformWorldToHClip(output.positionWS);
-    
+
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 
     #if defined(_NORMAL_MAP)
@@ -100,6 +100,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET
     surface.smoothness = GetSmoothness(config);
     surface.fresnelStrength = GetFresnel(config);
     surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+    surface.renderingLayerMask = asuint(unity_RenderingLayer.x);
 
     #if defined(_PREMULTIPLY_ALPHA)
         BRDF brdf = GetBRDF(surface, true);
@@ -111,7 +112,7 @@ float4 LitPassFragment(Varyings input) : SV_TARGET
     float3 color = GetLighting(surface, brdf, gi);
     color += GetEmission(config);
 
-    return float4(color, surface.alpha);
+    return float4(color, GetFinalAlpha(surface.alpha));
 }
 
 #endif

@@ -67,6 +67,11 @@ public partial class PostFXStack
 
     int colorLUTResolution;
 
+    CameraSettings.FinalBlendMode finalBlendMode;
+
+    int finalSrcBlendId = Shader.PropertyToID("_FinalSrcBlend"),
+        finalDstBlendId = Shader.PropertyToID("_FinalDstBlend");
+
     public PostFXStack()
     {
         bloomPyramidId = Shader.PropertyToID("_BloomPyramid0");
@@ -76,8 +81,10 @@ public partial class PostFXStack
         }
     }
 
-    public void Setup(ScriptableRenderContext context, Camera camera, PostFXSettings settings, bool useHDR, int colorLUTResolution)
+    public void Setup(ScriptableRenderContext context, Camera camera, PostFXSettings settings, bool useHDR, int colorLUTResolution,
+        CameraSettings.FinalBlendMode finalBlendMode)
     {
+        this.finalBlendMode = finalBlendMode;
         this.colorLUTResolution = colorLUTResolution;
         this.useHDR = useHDR;
         this.context = context;
@@ -115,16 +122,12 @@ public partial class PostFXStack
 
     void DrawFinal(RenderTargetIdentifier from)
     {
+        buffer.SetGlobalFloat(finalSrcBlendId, (float)finalBlendMode.source);
+        buffer.SetGlobalFloat(finalDstBlendId, (float)finalBlendMode.destination);
         buffer.SetGlobalTexture(fxSourceId, from);
-        buffer.SetRenderTarget(
-            BuiltinRenderTextureType.CameraTarget,
-            RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
-        );
+        buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, finalBlendMode.destination == BlendMode.Zero ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
         buffer.SetViewport(camera.pixelRect);
-        buffer.DrawProcedural(
-            Matrix4x4.identity, settings.Material,
-            (int)Pass.Final, MeshTopology.Triangles, 3
-        );
+        buffer.DrawProcedural(Matrix4x4.identity, settings.Material, (int)Pass.Final, MeshTopology.Triangles, 3);
     }
 
     #region Bloom

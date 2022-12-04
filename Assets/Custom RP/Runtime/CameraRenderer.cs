@@ -29,6 +29,8 @@ public partial class CameraRenderer
 
     bool useHDR;
 
+    static CameraSettings defaultCameraSettings = new CameraSettings();
+
     void Setup()
     {
         // apply camera's properties to the context
@@ -60,6 +62,14 @@ public partial class CameraRenderer
         this.context = context;
         this.camera = camera;
 
+        var crpCamera = camera.GetComponent<CustomRenderPipelineCamera>();
+        CameraSettings cameraSettings = crpCamera ? crpCamera.Settings : defaultCameraSettings;
+
+        if (cameraSettings.overridePostFX)
+        {
+            postFXSettings = cameraSettings.postFXSettings;
+        }
+
         PrepareBuffer();
         // draw UI in scene window
         PrepareForSceneWindow();
@@ -75,16 +85,16 @@ public partial class CameraRenderer
         ExecuteBuffer();
 
         // setup lighting data
-        lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject);
+        lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject, cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1);
 
         // setup post process
-        postFXStack.Setup(context, camera, postFXSettings, useHDR, colorLUTResolution);
+        postFXStack.Setup(context, camera, postFXSettings, useHDR, colorLUTResolution, cameraSettings.finalBlendMode);
 
         buffer.EndSample(SampleName);
 
         Setup();
 
-        DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject);
+        DrawVisibleGeometry(useDynamicBatching, useGPUInstancing, useLightsPerObject, cameraSettings.renderingLayerMask);
 
         DrawUnsupportedShaders();
 
@@ -106,7 +116,7 @@ public partial class CameraRenderer
         Submit();
     }
 
-    void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject)
+    void DrawVisibleGeometry(bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, int renderingLayerMask)
     {
         PerObjectData lightsPerObjectData = useLightsPerObject ? PerObjectData.LightData | PerObjectData.LightIndices : PerObjectData.None;
 
@@ -127,7 +137,7 @@ public partial class CameraRenderer
         };
         drawingSettings.SetShaderPassName(1, litShaderTagId);
 
-        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, renderingLayerMask: (uint)renderingLayerMask);
         context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings);
 
         // draw skybox
