@@ -9,23 +9,18 @@ public class RenderingLayerMaskDrawer : PropertyDrawer
     public static void Draw(Rect position, SerializedProperty property, GUIContent label)
     {
         EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
-
         EditorGUI.BeginChangeCheck();
         int mask = property.intValue;
-
         bool isUint = property.type == "uint";
         if (isUint && mask == int.MaxValue)
         {
             mask = -1;
         }
-
         mask = EditorGUI.MaskField(position, label, mask, GraphicsSettings.currentRenderPipeline.renderingLayerMaskNames);
-
         if (EditorGUI.EndChangeCheck())
         {
-            property.intValue = isUint && mask == -1 ? Int32.MaxValue : mask;
+            property.intValue = isUint && mask == -1 ? int.MaxValue : mask;
         }
-
         EditorGUI.showMixedValue = false;
     }
 
