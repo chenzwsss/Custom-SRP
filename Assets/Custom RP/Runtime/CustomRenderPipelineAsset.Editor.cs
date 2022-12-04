@@ -3,7 +3,7 @@ using UnityEngine;
 public partial class CustomRenderPipelineAsset
 {
 
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
 
     static string[] renderingLayerNames;
 
@@ -24,5 +24,5 @@ public partial class CustomRenderPipelineAsset
         }
     }
 
-#endif
+// #endif
 }

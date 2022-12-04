@@ -1,6 +1,3 @@
 using UnityEngine;
 
-public class RenderingLayerMaskFieldAttribute : PropertyAttribute
-{
-    
-}
+public class RenderingLayerMaskFieldAttribute : PropertyAttribute { }

@@ -12,6 +12,7 @@ public class RenderingLayerMaskDrawer : PropertyDrawer
 
         EditorGUI.BeginChangeCheck();
         int mask = property.intValue;
+
         bool isUint = property.type == "uint";
         if (isUint && mask == int.MaxValue)
         {

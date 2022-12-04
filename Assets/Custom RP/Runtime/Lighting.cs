@@ -75,6 +75,11 @@ public class Lighting
             VisibleLight visibleLight = visibleLights[i];
             Light light = visibleLight.light;
 
+            Debug.Log("---------------------------------");
+            Debug.Log(light.renderingLayerMask);
+            // Debug.Log(renderingLayerMask);
+            // Debug.Log((light.renderingLayerMask & renderingLayerMask));
+
             if ((light.renderingLayerMask & renderingLayerMask) != 0)
             {
                 switch (visibleLight.lightType)
