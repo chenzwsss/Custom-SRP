@@ -41,7 +41,35 @@ CBUFFER_START(UnityPerDraw)
     // HDR environment map decode instructions
     float4 unity_SpecCube0_HDR;
 
+    // x = orthographic camera's width
+    // y = orthographic camera's height
+    // z = unused
+    // w = 1.0 if camera is ortho, 0.0 if perspective
+    float4 unity_OrthoParams;
+
+    // x = 1 or -1 (-1 if projection is flipped)
+    // y = near plane
+    // z = far plane
+    // w = 1/far plane
     float4 _ProjectionParams;
+
+    // x = width
+    // y = height
+    // z = 1 + 1.0/width
+    // w = 1 + 1.0/height
+    float4 _ScreenParams;
+
+    // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
+    // x = 1-far/near
+    // y = far/near
+    // z = x/far
+    // w = y/far
+    // or in case of a reversed depth buffer (UNITY_REVERSED_Z is 1)
+    // x = -1+far/near
+    // y = 1
+    // z = x/far
+    // w = 1/far
+    float4 _ZBufferParams;
 CBUFFER_END
 
 float4x4 unity_MatrixVP;

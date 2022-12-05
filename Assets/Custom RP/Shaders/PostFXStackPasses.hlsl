@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 
-TEXTURE2D(_PostFXSource);      SAMPLER(sampler_linear_clamp);
+TEXTURE2D(_PostFXSource);
 TEXTURE2D(_PostFXSource2);
 
 float4 _PostFXSource_TexelSize;
@@ -30,7 +30,7 @@ TEXTURE2D(_ColorGradingLUT);
 
 struct Varyings
 {
-    float4 positionCS : SV_POSITION;
+    float4 positionCS_SS : SV_POSITION;
     float2 screenUV : VAR_SCREEN_UV;
 };
 
@@ -58,7 +58,7 @@ Varyings DefaultPassVertex(uint vertexID : SV_VertexID)
 {
     Varyings output;
 
-    output.positionCS = float4(
+    output.positionCS_SS = float4(
         vertexID <= 1 ? -1.0 : 3.0,
         vertexID == 1 ? 3.0 : -1.0,
         0.0,

@@ -10,8 +10,11 @@ Material:
   m_Name: Particles_Unlit
   m_Shader: {fileID: 4800000, guid: 7f15cdb8483664f49af10315c7948436, type: 3}
   m_ValidKeywords:
+  - _DISTORTION
   - _FLIPBOOK_BLENDING
+  - _NEAR_FADE
   - _RECEIVE_SHADOWS
+  - _SOFT_PARTICLES
   - _VERTEX_COLORS
   m_InvalidKeywords:
   - _SHADOWS_ON
@@ -28,6 +31,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 06841687de12b46078e18e66dcaf8226, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _DistortionMap:
+        m_Texture: {fileID: 2800000, guid: 0f4ee6b5178a23c4ba039b5c87ff64d4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: 06841687de12b46078e18e66dcaf8226, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -36,10 +43,19 @@ Material:
     m_Floats:
     - _Clipping: 0
     - _Cutoff: 0.5
+    - _Distortion: 1
+    - _DistortionBlend: 0.771
+    - _DistortionStrength: 0.1
     - _DstBlend: 10
     - _FlipbookBlending: 1
+    - _NearFade: 1
+    - _NearFadeDistance: 1
+    - _NearFadeRange: 1
     - _ReceiveShadows: 1
     - _Shadows: 0
+    - _SoftParticles: 1
+    - _SoftParticlesDistance: 0
+    - _SoftParticlesRange: 1
     - _SrcBlend: 5
     - _VertexColors: 1
     - _ZWrite: 0

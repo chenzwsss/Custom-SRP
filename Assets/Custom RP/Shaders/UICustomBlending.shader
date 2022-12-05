@@ -66,7 +66,7 @@ Shader "Custom RP/UI Custom Blending"
 
             struct Varyings
             {
-                float4 positionCS : SV_POSITION;
+                float4 positionCS_SS : SV_POSITION;
                 float2 positionUI : VAR_POSITION;
                 float2 baseUV : VAR_BASE_UV;
                 float4 color : COLOR;
@@ -84,7 +84,7 @@ Shader "Custom RP/UI Custom Blending"
                 Varyings output;
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-                output.positionCS = UnityObjectToClipPos(input.positionOS);
+                output.positionCS_SS = UnityObjectToClipPos(input.positionOS);
                 output.positionUI = input.positionOS.xy;
                 output.baseUV = TRANSFORM_TEX(input.baseUV, _MainTex);
                 output.color = input.color * _Color;
