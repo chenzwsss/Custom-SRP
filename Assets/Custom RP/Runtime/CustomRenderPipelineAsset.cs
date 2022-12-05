@@ -7,6 +7,13 @@ public struct CameraBufferSettings
     public bool allowHDR;
 
     public bool copyColor, copyColorReflection, copyDepth, copyDepthReflections;
+
+    [Range(CameraRenderer.renderScaleMin, CameraRenderer.renderScaleMax)]
+    public float renderScale;
+
+    public enum BicubicRescalingMode { Off, UpOnly, UpAndDown }
+
+    public BicubicRescalingMode bicubicRescaling;
 }
 
 [CreateAssetMenu(menuName = "Rendering/Custom Render Pipeline")]
@@ -15,7 +22,8 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
     [SerializeField]
     CameraBufferSettings cameraBuffer = new CameraBufferSettings
     {
-        allowHDR = true
+        allowHDR = true,
+        renderScale = 1f
     };
 
     [SerializeField]

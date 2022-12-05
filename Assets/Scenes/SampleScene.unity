@@ -257,10 +257,10 @@ Camera:
   m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0.25
-    height: 0.25
+    x: 0.25
+    y: 0.25
+    width: 0.5
+    height: 0.5
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -313,6 +313,8 @@ MonoBehaviour:
     copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
+    renderScaleMode: 2
+    renderScale: 0.1
     finalBlendMode:
       source: 5
       destination: 10
@@ -8661,6 +8663,8 @@ MonoBehaviour:
     copyDepth: 1
     renderingLayerMask: -1
     maskLights: 0
+    renderScaleMode: 0
+    renderScale: 1
     finalBlendMode:
       source: 1
       destination: 10
@@ -10326,6 +10330,8 @@ MonoBehaviour:
     copyDepth: 1
     renderingLayerMask: 1
     maskLights: 1
+    renderScaleMode: 0
+    renderScale: 1
     finalBlendMode:
       source: 1
       destination: 0
