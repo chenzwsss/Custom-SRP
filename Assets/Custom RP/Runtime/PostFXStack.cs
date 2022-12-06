@@ -22,8 +22,11 @@ public partial class PostFXStack
         ColorGradingACES,
         ColorGradingNeutral,
         ColorGradingReinhard,
-        Final,
-        FinalRescale
+        ApplyColorGrading,
+        ApplyColorGradingWithLuma,
+        FinalRescale,
+        FXAA,
+        FXAAWithLuma
     }
 
     CommandBuffer buffer = new CommandBuffer
@@ -64,7 +67,7 @@ public partial class PostFXStack
 
     int bloomPyramidId;
 
-    bool useHDR;
+    bool keepAlpha, useHDR;
 
     int colorLUTResolution;
 
@@ -75,10 +78,18 @@ public partial class PostFXStack
 
     Vector2Int bufferSize;
 
-    int finalResultId = Shader.PropertyToID("_FinalResult"),
+    int colorGradingResultId = Shader.PropertyToID("_ColorGradingResult"),
+        finalResultId = Shader.PropertyToID("_FinalResult"),
         copyBicubicId = Shader.PropertyToID("_CopyBicubic");
 
     CameraBufferSettings.BicubicRescalingMode bicubicRescaling;
+
+    CameraBufferSettings.FXAA fxaa;
+
+    int fxaaConfigId = Shader.PropertyToID("_FXAAConfig");
+
+    const string fxaaQualityLowKeyword = "FXAA_QUALITY_LOW",
+        fxaaQualityMediumKeyword = "FXAA_QUALITY_MEDIUM";
 
     public PostFXStack()
     {
@@ -89,13 +100,15 @@ public partial class PostFXStack
         }
     }
 
-    public void Setup(ScriptableRenderContext context, Camera camera, Vector2Int bufferSize, PostFXSettings settings, bool useHDR, int colorLUTResolution,
-        CameraSettings.FinalBlendMode finalBlendMode, CameraBufferSettings.BicubicRescalingMode bicubicRescaling)
+    public void Setup(ScriptableRenderContext context, Camera camera, Vector2Int bufferSize, PostFXSettings settings, bool keepAlpha, bool useHDR, int colorLUTResolution,
+        CameraSettings.FinalBlendMode finalBlendMode, CameraBufferSettings.BicubicRescalingMode bicubicRescaling, CameraBufferSettings.FXAA fxaa)
     {
+        this.fxaa = fxaa;
         this.bicubicRescaling = bicubicRescaling;
         this.bufferSize = bufferSize;
         this.finalBlendMode = finalBlendMode;
         this.colorLUTResolution = colorLUTResolution;
+        this.keepAlpha = keepAlpha;
         this.useHDR = useHDR;
         this.context = context;
         this.camera = camera;
@@ -110,12 +123,12 @@ public partial class PostFXStack
     {
         if (DoBloom(sourceId))
         {
-            DoColorGradingAndToneMapping(bloomResultId);
+            DoFinal(bloomResultId);
             buffer.ReleaseTemporaryRT(bloomResultId);
         }
         else
         {
-            DoColorGradingAndToneMapping(sourceId);
+            DoFinal(sourceId);
         }
 
         context.ExecuteCommandBuffer(buffer);
@@ -303,7 +316,27 @@ public partial class PostFXStack
         buffer.SetGlobalVector(smhRangeId, new Vector4(smh.shadowsStart, smh.shadowsEnd, smh.highlightsStart, smh.highLightsEnd));
     }
 
-    void DoColorGradingAndToneMapping(int sourceId)
+    void ConfigureFXAA()
+    {
+        if (fxaa.quality == CameraBufferSettings.FXAA.Quality.Low)
+        {
+            buffer.EnableShaderKeyword(fxaaQualityLowKeyword);
+            buffer.DisableShaderKeyword(fxaaQualityMediumKeyword);
+        }
+        else if (fxaa.quality == CameraBufferSettings.FXAA.Quality.Medium)
+        {
+            buffer.DisableShaderKeyword(fxaaQualityLowKeyword);
+            buffer.EnableShaderKeyword(fxaaQualityMediumKeyword);
+        }
+        else
+        {
+            buffer.DisableShaderKeyword(fxaaQualityLowKeyword);
+            buffer.DisableShaderKeyword(fxaaQualityMediumKeyword);
+        }
+        buffer.SetGlobalVector(fxaaConfigId, new Vector4(fxaa.fixedThreshold, fxaa.relativeThreshold, fxaa.subpixelBlending));
+    }
+
+    void DoFinal(int sourceId)
     {
         ConfigureColorAdjustments();
         ConfigureWhiteBalance();
@@ -323,17 +356,42 @@ public partial class PostFXStack
 
         buffer.SetGlobalVector(colorGradingLUTParametersId, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f));
 
+        // FXAA is enabled we first have to perform color grading and then apply FXAA on top of that.
+        buffer.SetGlobalFloat(finalSrcBlendId, 1f);
+        buffer.SetGlobalFloat(finalDstBlendId, 0f);
+        if (fxaa.enabled)
+        {
+            ConfigureFXAA();
+            buffer.GetTemporaryRT(colorGradingResultId, bufferSize.x, bufferSize.y, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
+            Draw(sourceId, colorGradingResultId, keepAlpha ? Pass.ApplyColorGrading : Pass.ApplyColorGradingWithLuma);
+        }
+
         // renderScale is 1
         if (bufferSize.x == camera.pixelWidth)
         {
-            DrawFinal(sourceId, Pass.Final);
+            if (fxaa.enabled)
+            {
+                DrawFinal(colorGradingResultId, keepAlpha ? Pass.FXAA : Pass.FXAAWithLuma);
+                buffer.ReleaseTemporaryRT(colorGradingResultId);
+            }
+            else
+            {
+                DrawFinal(sourceId, Pass.ApplyColorGrading);
+            }
         }
         else
         {
-            buffer.SetGlobalFloat(finalSrcBlendId, 1f);
-            buffer.SetGlobalFloat(finalDstBlendId, 0f);
             buffer.GetTemporaryRT(finalResultId, bufferSize.x, bufferSize.y, 0, FilterMode.Bilinear, RenderTextureFormat.Default);
-            Draw(sourceId, finalResultId, Pass.Final);
+
+            if (fxaa.enabled)
+            {
+                Draw(colorGradingResultId, finalResultId, keepAlpha ? Pass.FXAA : Pass.FXAAWithLuma);
+                buffer.ReleaseTemporaryRT(colorGradingResultId);
+            }
+            else
+            {
+                Draw(sourceId, finalResultId, Pass.ApplyColorGrading);
+            }
 
             bool bicubicSampling = bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpAndDown ||
                                    bicubicRescaling == CameraBufferSettings.BicubicRescalingMode.UpOnly &&

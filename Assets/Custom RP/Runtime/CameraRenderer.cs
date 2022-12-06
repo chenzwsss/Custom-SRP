@@ -161,8 +161,10 @@ public partial class CameraRenderer
         // setup lighting data
         lighting.Setup(context, cullingResults, shadowSettings, useLightsPerObject, cameraSettings.renderingLayerMask);
 
+        bufferSettings.fxaa.enabled &= cameraSettings.allowFXAA;
         // setup post process
-        postFXStack.Setup(context, camera, bufferSize, postFXSettings, useHDR, colorLUTResolution, cameraSettings.finalBlendMode, bufferSettings.bicubicRescaling);
+        postFXStack.Setup(context, camera, bufferSize, postFXSettings, cameraSettings.keepAlpha, useHDR, colorLUTResolution, cameraSettings.finalBlendMode, bufferSettings.bicubicRescaling,
+            bufferSettings.fxaa);
 
         buffer.EndSample(SampleName);
 

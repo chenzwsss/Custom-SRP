@@ -237,7 +237,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!20 &132781737
 Camera:
   m_ObjectHideFlags: 0
@@ -320,6 +320,7 @@ MonoBehaviour:
       destination: 10
     overridePostFX: 1
     postFXSettings: {fileID: 11400000, guid: 052155ce812724ea7b706055bc32636a, type: 2}
+    allowFXAA: 0
 --- !u!1 &140798321
 GameObject:
   m_ObjectHideFlags: 0
@@ -8670,6 +8671,7 @@ MonoBehaviour:
       destination: 10
     overridePostFX: 0
     postFXSettings: {fileID: 0}
+    allowFXAA: 0
 --- !u!1 &602703299
 GameObject:
   m_ObjectHideFlags: 0
@@ -10337,6 +10339,7 @@ MonoBehaviour:
       destination: 0
     overridePostFX: 0
     postFXSettings: {fileID: 0}
+    allowFXAA: 1
 --- !u!1 &986489578
 GameObject:
   m_ObjectHideFlags: 0

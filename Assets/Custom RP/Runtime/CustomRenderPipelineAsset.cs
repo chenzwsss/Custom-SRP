@@ -1,21 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-[System.Serializable]
-public struct CameraBufferSettings
-{
-    public bool allowHDR;
-
-    public bool copyColor, copyColorReflection, copyDepth, copyDepthReflections;
-
-    [Range(CameraRenderer.renderScaleMin, CameraRenderer.renderScaleMax)]
-    public float renderScale;
-
-    public enum BicubicRescalingMode { Off, UpOnly, UpAndDown }
-
-    public BicubicRescalingMode bicubicRescaling;
-}
-
 [CreateAssetMenu(menuName = "Rendering/Custom Render Pipeline")]
 public partial class CustomRenderPipelineAsset : RenderPipelineAsset
 {
@@ -23,7 +8,13 @@ public partial class CustomRenderPipelineAsset : RenderPipelineAsset
     CameraBufferSettings cameraBuffer = new CameraBufferSettings
     {
         allowHDR = true,
-        renderScale = 1f
+        renderScale = 1f,
+        fxaa = new CameraBufferSettings.FXAA
+        {
+            fixedThreshold = 0.0833f,
+            relativeThreshold = 0.166f,
+            subpixelBlending = 0.75f
+        }
     };
 
     [SerializeField]

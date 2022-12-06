@@ -35,6 +35,10 @@ public class CameraSettings
 
     public PostFXSettings postFXSettings = default;
 
+    public bool allowFXAA = false;
+
+    public bool keepAlpha = false;
+
     public float GetRenderScale(float scale)
     {
         return renderScaleMode == RenderScaleMode.Inherit ? scale :
