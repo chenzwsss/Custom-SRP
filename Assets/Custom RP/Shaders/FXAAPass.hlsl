@@ -1,6 +1,14 @@
 ﻿#ifndef CUSTOM_FXAA_PASS_INCLUDED
 #define CUSTOM_FXAA_PASS_INCLUDED
 
+#include "FXAACommon.hlsl"
+
+#define TEMPLATE_5_FLT(FunctionName, Parameter1, Parameter2, Parameter3, Parameter4, Parameter5, FunctionBody) \
+    float FunctionName(float Parameter1, float Parameter2, float Parameter3, float Parameter4, float Parameter5) { FunctionBody; }
+
+TEMPLATE_5_FLT(Max5, a, b, c, d, e, return max(max(max(max(a, b), c), d), e))
+TEMPLATE_5_FLT(Min5, a, b, c, d, e, return min(min(min(min(a, b), c), d), e))
+
 #if defined(FXAA_QUALITY_LOW)
     #define EXTRA_EDGE_STEPS 3
     #define EDGE_STEP_SIZES 1.5, 2.0, 2.0
@@ -15,14 +23,18 @@
     #define LAST_EDGE_STEP_GUESS 8.0
 #endif
 
+#define SEARCH_STEPS 10
+#define GUESS 8.0
+
 static const float edgeStepSizes[EXTRA_EDGE_STEPS] = { EDGE_STEP_SIZES };
 
+// x: luma minThreshold, y: luma threshold
 float4 _FXAAConfig;
 
 struct LumaNeighborhood
 {
     float m, n, e, s, w, ne, se, sw, nw;
-    float highest, lowest, range;
+    float maxLuma, minLuma, contrast;
 };
 
 struct FXAAEdge
@@ -55,15 +67,15 @@ LumaNeighborhood GetLumaNeighborhood(float2 uv)
     luma.sw = GetLuma(uv, -1.0, -1.0);
     luma.nw = GetLuma(uv, -1.0, 1.0);
 
-    luma.highest = max(max(max(max(luma.m, luma.n), luma.e), luma.s), luma.w);
-    luma.lowest = min(min(min(min(luma.m, luma.n), luma.e), luma.s), luma.w);
-    luma.range = luma.highest - luma.lowest;
+    luma.maxLuma = Max5(luma.m, luma.n, luma.e, luma.s, luma.w);
+    luma.minLuma = Min5(luma.m, luma.n, luma.e, luma.s, luma.w);
+    luma.contrast = luma.maxLuma - luma.minLuma;
     return luma;
 }
 
 bool CanSkipFXAA(LumaNeighborhood luma)
 {
-    return luma.range < max(_FXAAConfig.x, _FXAAConfig.y * luma.highest);
+    return luma.contrast < max(_FXAAConfig.x, _FXAAConfig.y * luma.maxLuma);
 }
 
 // Neighbor weights
@@ -72,18 +84,21 @@ bool CanSkipFXAA(LumaNeighborhood luma)
 // 1    2    1
 float GetSubpixelBlendFactor(LumaNeighborhood luma)
 {
-    float filter = 2.0 * (luma.n + luma.e + luma.s + luma.w);
-    filter += luma.ne + luma.nw + luma.se + luma.sw;
-    filter *= 1.0 / 12.0;
-    filter = saturate(filter / luma.range);
+    // 按照相应权重，将周围像素点亮度相加
+    float filter = 2.0 * (luma.n + luma.e + luma.s + luma.w) + luma.ne + luma.nw + luma.se + luma.sw;
+    filter /= 12;
+    // 计算出基于亮度的混合系数
+    filter = abs(filter - luma.m);
+    filter = saturate(filter / luma.contrast);
+    // 使输出结果更加平滑
     filter = smoothstep(0, 1, filter);
     return filter * filter * _FXAAConfig.z;
 }
 
 bool IsHorizontalEdge(LumaNeighborhood luma)
 {
-    float horizontal =2.0 * abs(luma.n + luma.s - 2.0 * luma.m) + abs(luma.ne + luma.se - 2.0 * luma.e) + abs(luma.nw + luma.sw - 2.0 * luma.w);
-    float vertical =2.0 * abs(luma.e + luma.w - 2.0 * luma.m) + abs(luma.ne + luma.nw - 2.0 * luma.n) + abs(luma.se + luma.sw - 2.0 * luma.s);
+    float horizontal = 2.0 * abs(luma.n + luma.s - 2.0 * luma.m) + abs(luma.ne + luma.se - 2.0 * luma.e) + abs(luma.nw + luma.sw - 2.0 * luma.w);
+    float vertical = 2.0 * abs(luma.e + luma.w - 2.0 * luma.m) + abs(luma.ne + luma.nw - 2.0 * luma.n) + abs(luma.se + luma.sw - 2.0 * luma.s);
     return horizontal >= vertical;
 }
 
@@ -213,27 +228,132 @@ float GetEdgeBlendFactor(LumaNeighborhood luma, FXAAEdge edge, float2 uv)
 
 float4 FXAAPassFragment(Varyings input) : SV_TARGET
 {
+    // 1. 对比度计算
+    // 采样自己和周围像素, 计算出亮度最大值和最小值, 以及亮度对比值(最大值减去最小值)
     LumaNeighborhood luma = GetLumaNeighborhood(input.screenUV);
 
+    // 对比度较小, 则跳过抗锯齿计算
     if (CanSkipFXAA(luma))
     {
         return GetSource(input.screenUV);
     }
 
-    FXAAEdge edge = GetFXAAEdge(luma);
+    float vertical = abs(luma.n + luma.s - 2 * luma.m) * 2 + abs(luma.ne + luma.se - 2 * luma.e) + abs(luma.nw + luma.sw - 2 * luma.w);
+    float horizontal = abs(luma.e + luma.w - 2 * luma.m) * 2 + abs(luma.ne + luma.nw - 2 * luma.n) + abs(luma.se + luma.sw - 2 * luma.s);
+    bool isHorizontal = vertical > horizontal;
 
-    float blendFactor = max(GetSubpixelBlendFactor(luma), GetEdgeBlendFactor(luma, edge, input.screenUV));
+    float2 pixelStep = isHorizontal ? float2(0.0, GetSourceTexelSize().y) : float2(GetSourceTexelSize().x, 0.0);
 
-    float2 blendUV = input.screenUV;
-    if (edge.isHorizontal)
+    float positive = abs((isHorizontal ? luma.n : luma.e) - luma.m);
+    float negative = abs((isHorizontal ? luma.s : luma.w) - luma.m);
+    float gradient, oppositeLuminance;
+    if (positive > negative)
     {
-        blendUV.y += blendFactor * edge.pixelStep;
+        gradient = positive;
+        oppositeLuminance = isHorizontal ? luma.n : luma.e;
     }
     else
     {
-        blendUV.x += blendFactor * edge.pixelStep;
+        pixelStep = -pixelStep;
+        gradient = negative;
+        oppositeLuminance = isHorizontal ? luma.s : luma.w;
     }
+
+    float2 uvEdge = input.screenUV;
+    uvEdge += pixelStep * 0.5f;
+    float2 edgeStep = isHorizontal ? float2(GetSourceTexelSize().x, 0.0) : float2(0.0, GetSourceTexelSize().y);
+
+    float edgeLuminance = (luma.m + oppositeLuminance) * 0.5f;
+    float gradientThreshold = edgeLuminance * 0.25f;
+    float pLuminanceDelta, nLuminanceDelta, pDistance, nDistance;
+    int i;
+    for (i = 1; i < SEARCH_STEPS; ++i)
+    {
+        pLuminanceDelta = Luminance(GetSource(uvEdge + i * edgeStep)) - edgeLuminance;
+        if (abs(pLuminanceDelta) > gradientThreshold)
+        {
+            pDistance = i * (isHorizontal ? edgeStep.x : edgeStep.y);
+            break;
+        }
+    }
+
+    if (i == SEARCH_STEPS + 1)
+    {
+        pDistance = edgeStep * GUESS;
+    }
+
+    for (i = 1; i <= SEARCH_STEPS; ++i)
+    {
+        nLuminanceDelta = Luminance(GetSource(uvEdge - i * edgeStep)) - edgeLuminance;
+        if (abs(nLuminanceDelta) > gradientThreshold)
+        {
+            nDistance = i * (isHorizontal ? edgeStep.x : edgeStep.y);
+            break;
+        }
+    }
+
+    if (i == SEARCH_STEPS + 1)
+    {
+        nDistance = -edgeStep * GUESS;
+    }
+
+    float edgeBlend;
+    if (pDistance < nDistance)
+    {
+        if (sign(pLuminanceDelta) == sign(luma.m - edgeLuminance))
+        {
+            edgeBlend = 0;
+        }
+        else
+        {
+            edgeBlend = 0.5f - pDistance / (pDistance + nDistance);
+        }
+    }
+    else
+    {
+        if (sign(nLuminanceDelta) == sign(luma.m - edgeLuminance))
+        {
+            edgeBlend = 0;
+        }
+        else
+        {
+            edgeBlend = 0.5f - nDistance / (pDistance + nDistance);
+        }
+    }
+
+    float pixelBlend = GetSubpixelBlendFactor(luma);
+
+    float finalBlend = max(pixelBlend, edgeBlend);
+
+    float2 blendUV = input.screenUV + pixelStep * finalBlend;
+
     return GetSource(blendUV);
+
+    // float2 blendUV = input.screenUV + pixelStep
+
+    // FXAAEdge edge = GetFXAAEdge(luma);
+    //
+    // float blendFactor = max(GetSubpixelBlendFactor(luma), GetEdgeBlendFactor(luma, edge, input.screenUV));
+    //
+    // float2 blendUV = input.screenUV;
+    // if (edge.isHorizontal)
+    // {
+    //     blendUV.y += blendFactor * edge.pixelStep;
+    // }
+    // else
+    // {
+    //     blendUV.x += blendFactor * edge.pixelStep;
+    // }
+    // return GetSource(blendUV);
+
+    // float4 color = GetSource(input.screenUV);
+    //
+    // float2 positionNDC = input.screenUV;
+    // int2 positionSS  = input.screenUV * GetSourceTexelSize().zw;
+    //
+    // color.rgb = ApplyFXAA(color.rgb, positionNDC, positionSS, float4(GetSourceTexelSize().zw, GetSourceTexelSize().xy), _PostFXSource);
+    //
+    // return color;
 }
 
 #endif

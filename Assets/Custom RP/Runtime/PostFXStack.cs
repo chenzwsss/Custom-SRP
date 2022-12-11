@@ -333,7 +333,7 @@ public partial class PostFXStack
             buffer.DisableShaderKeyword(fxaaQualityLowKeyword);
             buffer.DisableShaderKeyword(fxaaQualityMediumKeyword);
         }
-        buffer.SetGlobalVector(fxaaConfigId, new Vector4(fxaa.fixedThreshold, fxaa.relativeThreshold, fxaa.subpixelBlending));
+        buffer.SetGlobalVector(fxaaConfigId, new Vector4(fxaa.minThreshold, fxaa.threshold, fxaa.subpixelBlending));
     }
 
     void DoFinal(int sourceId)
