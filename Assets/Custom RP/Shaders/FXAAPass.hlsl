@@ -28,7 +28,7 @@ TEMPLATE_5_FLT(Min5, a, b, c, d, e, return min(min(min(min(a, b), c), d), e))
 
 static const float edgeStepSizes[EXTRA_EDGE_STEPS] = { EDGE_STEP_SIZES };
 
-// x: luma minThreshold, y: luma threshold
+// x: contrastThreshold, y: relativeThreshold, z: blend factor scaling
 float4 _FXAAConfig;
 
 struct LumaNeighborhood
@@ -238,122 +238,20 @@ float4 FXAAPassFragment(Varyings input) : SV_TARGET
         return GetSource(input.screenUV);
     }
 
-    float vertical = abs(luma.n + luma.s - 2 * luma.m) * 2 + abs(luma.ne + luma.se - 2 * luma.e) + abs(luma.nw + luma.sw - 2 * luma.w);
-    float horizontal = abs(luma.e + luma.w - 2 * luma.m) * 2 + abs(luma.ne + luma.nw - 2 * luma.n) + abs(luma.se + luma.sw - 2 * luma.s);
-    bool isHorizontal = vertical > horizontal;
+    FXAAEdge edge = GetFXAAEdge(luma);
 
-    float2 pixelStep = isHorizontal ? float2(0.0, GetSourceTexelSize().y) : float2(GetSourceTexelSize().x, 0.0);
+    float blendFactor = max(GetSubpixelBlendFactor(luma), GetEdgeBlendFactor(luma, edge, input.screenUV));
 
-    float positive = abs((isHorizontal ? luma.n : luma.e) - luma.m);
-    float negative = abs((isHorizontal ? luma.s : luma.w) - luma.m);
-    float gradient, oppositeLuminance;
-    if (positive > negative)
+    float2 blendUV = input.screenUV;
+    if (edge.isHorizontal)
     {
-        gradient = positive;
-        oppositeLuminance = isHorizontal ? luma.n : luma.e;
+        blendUV.y += blendFactor * edge.pixelStep;
     }
     else
     {
-        pixelStep = -pixelStep;
-        gradient = negative;
-        oppositeLuminance = isHorizontal ? luma.s : luma.w;
+        blendUV.x += blendFactor * edge.pixelStep;
     }
-
-    float2 uvEdge = input.screenUV;
-    uvEdge += pixelStep * 0.5f;
-    float2 edgeStep = isHorizontal ? float2(GetSourceTexelSize().x, 0.0) : float2(0.0, GetSourceTexelSize().y);
-
-    float edgeLuminance = (luma.m + oppositeLuminance) * 0.5f;
-    float gradientThreshold = edgeLuminance * 0.25f;
-    float pLuminanceDelta, nLuminanceDelta, pDistance, nDistance;
-    int i;
-    for (i = 1; i < SEARCH_STEPS; ++i)
-    {
-        pLuminanceDelta = Luminance(GetSource(uvEdge + i * edgeStep)) - edgeLuminance;
-        if (abs(pLuminanceDelta) > gradientThreshold)
-        {
-            pDistance = i * (isHorizontal ? edgeStep.x : edgeStep.y);
-            break;
-        }
-    }
-
-    if (i == SEARCH_STEPS + 1)
-    {
-        pDistance = edgeStep * GUESS;
-    }
-
-    for (i = 1; i <= SEARCH_STEPS; ++i)
-    {
-        nLuminanceDelta = Luminance(GetSource(uvEdge - i * edgeStep)) - edgeLuminance;
-        if (abs(nLuminanceDelta) > gradientThreshold)
-        {
-            nDistance = i * (isHorizontal ? edgeStep.x : edgeStep.y);
-            break;
-        }
-    }
-
-    if (i == SEARCH_STEPS + 1)
-    {
-        nDistance = -edgeStep * GUESS;
-    }
-
-    float edgeBlend;
-    if (pDistance < nDistance)
-    {
-        if (sign(pLuminanceDelta) == sign(luma.m - edgeLuminance))
-        {
-            edgeBlend = 0;
-        }
-        else
-        {
-            edgeBlend = 0.5f - pDistance / (pDistance + nDistance);
-        }
-    }
-    else
-    {
-        if (sign(nLuminanceDelta) == sign(luma.m - edgeLuminance))
-        {
-            edgeBlend = 0;
-        }
-        else
-        {
-            edgeBlend = 0.5f - nDistance / (pDistance + nDistance);
-        }
-    }
-
-    float pixelBlend = GetSubpixelBlendFactor(luma);
-
-    float finalBlend = max(pixelBlend, edgeBlend);
-
-    float2 blendUV = input.screenUV + pixelStep * finalBlend;
-
     return GetSource(blendUV);
-
-    // float2 blendUV = input.screenUV + pixelStep
-
-    // FXAAEdge edge = GetFXAAEdge(luma);
-    //
-    // float blendFactor = max(GetSubpixelBlendFactor(luma), GetEdgeBlendFactor(luma, edge, input.screenUV));
-    //
-    // float2 blendUV = input.screenUV;
-    // if (edge.isHorizontal)
-    // {
-    //     blendUV.y += blendFactor * edge.pixelStep;
-    // }
-    // else
-    // {
-    //     blendUV.x += blendFactor * edge.pixelStep;
-    // }
-    // return GetSource(blendUV);
-
-    // float4 color = GetSource(input.screenUV);
-    //
-    // float2 positionNDC = input.screenUV;
-    // int2 positionSS  = input.screenUV * GetSourceTexelSize().zw;
-    //
-    // color.rgb = ApplyFXAA(color.rgb, positionNDC, positionSS, float4(GetSourceTexelSize().zw, GetSourceTexelSize().xy), _PostFXSource);
-    //
-    // return color;
 }
 
 #endif

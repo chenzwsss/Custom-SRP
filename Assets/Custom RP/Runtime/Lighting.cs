@@ -6,7 +6,7 @@ public class Lighting
 {
     const string bufferName = "Lighting";
 
-    CommandBuffer buffer = new CommandBuffer
+    CommandBuffer cmd = new CommandBuffer
     {
         name = bufferName
     };
@@ -48,7 +48,7 @@ public class Lighting
     {
         this.cullingResults = cullingResults;
 
-        buffer.BeginSample(bufferName);
+        cmd.BeginSample(bufferName);
 
         shadows.Setup(context, cullingResults, shadowSettings);
 
@@ -56,10 +56,10 @@ public class Lighting
 
         shadows.Render();
 
-        buffer.EndSample(bufferName);
+        cmd.EndSample(bufferName);
 
-        context.ExecuteCommandBuffer(buffer);
-        buffer.Clear();
+        context.ExecuteCommandBuffer(cmd);
+        cmd.Clear();
     }
 
     void SetupLights(bool useLightsPerObject, int renderingLayerMask)
@@ -119,22 +119,22 @@ public class Lighting
             Shader.DisableKeyword(lightsPerObjectKeyword);
         }
 
-        buffer.SetGlobalInt(dirLightCountId, dirLightCount);
+        cmd.SetGlobalInt(dirLightCountId, dirLightCount);
         if (dirLightCount > 0)
         {
-            buffer.SetGlobalVectorArray(dirLightColorsId, dirLightColors);
-            buffer.SetGlobalVectorArray(dirLightDirectionsAndMasksId, dirLightDirectionsAndMasks);
-            buffer.SetGlobalVectorArray(dirLightShadowDataId, dirLightShadowData);
+            cmd.SetGlobalVectorArray(dirLightColorsId, dirLightColors);
+            cmd.SetGlobalVectorArray(dirLightDirectionsAndMasksId, dirLightDirectionsAndMasks);
+            cmd.SetGlobalVectorArray(dirLightShadowDataId, dirLightShadowData);
         }
 
-        buffer.SetGlobalInt(otherLightCountId, otherLightCount);
+        cmd.SetGlobalInt(otherLightCountId, otherLightCount);
         if (otherLightCount > 0)
         {
-            buffer.SetGlobalVectorArray(otherLightColorsId, otherLightColors);
-            buffer.SetGlobalVectorArray(otherLightPositionsId, otherLightPositions);
-            buffer.SetGlobalVectorArray(otherLightDirectionsAndMasksId, otherLightDirectionsAndMasks);
-            buffer.SetGlobalVectorArray(otherLightSpotAnglesId, otherLightSpotAngles);
-            buffer.SetGlobalVectorArray(otherLightShadowDataId, otherLightShadowData);
+            cmd.SetGlobalVectorArray(otherLightColorsId, otherLightColors);
+            cmd.SetGlobalVectorArray(otherLightPositionsId, otherLightPositions);
+            cmd.SetGlobalVectorArray(otherLightDirectionsAndMasksId, otherLightDirectionsAndMasks);
+            cmd.SetGlobalVectorArray(otherLightSpotAnglesId, otherLightSpotAngles);
+            cmd.SetGlobalVectorArray(otherLightShadowDataId, otherLightShadowData);
         }
     }
 
